@@ -1,10 +1,9 @@
-import axios, { Axios, AxiosResponse } from 'axios';
+import axios, { Axios, AxiosError, AxiosResponse } from 'axios';
 import queryString from 'query-string';
 
 const AxiosHelper = () => {
   let _baseUrl = '';
-  let _authorization: string | null = '';
-  let _cookie = '';
+  let _authorization = '';
   let _instance: Axios;
 
   // 함수 체이닝 사용
@@ -14,12 +13,7 @@ const AxiosHelper = () => {
   };
 
   const setAuthorization = (token: string | null) => {
-    _authorization = token;
-    return apiFunctions;
-  };
-
-  const setCookie = (cookie: string) => {
-    _cookie = cookie;
+    _authorization = token ? token : '';
     return apiFunctions;
   };
 
@@ -30,7 +24,6 @@ const AxiosHelper = () => {
       headers: {
         common: {
           Authorization: `Bearer ${_authorization}`,
-          Cookie: _cookie,
         },
       },
     });
@@ -38,101 +31,76 @@ const AxiosHelper = () => {
     return apiFunctions;
   };
 
+  const axiosError = async (error: AxiosError, params?: unknown) => {
+    //에러 처리 로직에 맞게 기능 개발
+    if (error?.response?.status == 401) {
+      console.log(params);
+    }
+  };
+
   const get = async (url: string, params?: unknown): Promise<AxiosResponse> => {
     try {
-      const { data, status } = await _instance.get(url, {
+      const { data } = await _instance.get(url, {
         params,
         paramsSerializer: (params) => {
           return queryString.stringify(params);
         },
       });
 
-      if (status === 500) {
-        throw data;
-      }
-
       return data;
     } catch (e) {
-      throw axiosError(e);
+      throw axiosError(e as AxiosError, params);
     }
   };
 
   const post = async (url: string, params?: unknown): Promise<AxiosResponse> => {
     try {
-      const { data, status } = await _instance.post(url, params);
-
-      if (status === 500) {
-        throw data;
-      }
+      const { data } = await _instance.post(url, params);
 
       return data;
     } catch (e) {
-      throw axiosError(e);
+      throw axiosError(e as AxiosError, params);
     }
   };
 
   const put = async (url: string, params?: unknown): Promise<AxiosResponse> => {
     try {
-      const { data, status } = await _instance.put(url, params);
-
-      if (status === 500) {
-        throw data;
-      }
+      const { data } = await _instance.put(url, params);
 
       return data;
     } catch (e) {
-      throw axiosError(e);
+      throw axiosError(e as AxiosError, params);
     }
   };
 
   const del = async (url: string, params?: unknown): Promise<AxiosResponse> => {
     try {
-      const { data, status } = await _instance.delete(url, {
+      const { data } = await _instance.delete(url, {
         params,
         paramsSerializer: (params) => {
           return queryString.stringify(params);
         },
       });
 
-      if (status === 500) {
-        throw data;
-      }
-
       return data;
     } catch (e) {
-      throw axiosError(e);
+      throw axiosError(e as AxiosError, params);
     }
   };
 
   const patch = async (url: string, params?: unknown): Promise<AxiosResponse> => {
     try {
-      const { data, status } = await _instance.patch(url, params);
-
-      if (status === 500) {
-        throw data;
-      }
+      const { data } = await _instance.patch(url, params);
 
       return data;
     } catch (e) {
-      throw axiosError(e);
+      throw axiosError(e as AxiosError, params);
     }
-  };
-
-  const axiosError = (error: any) => {
-    const { response } = error;
-
-    const { data, status } = response;
-
-    if (status === 500) {
-      location.href = '/error/500';
-    }
-    throw data;
   };
 
   const apiFunctions = {
     setBaseUrl,
     setAuthorization,
-    setCookie,
     build,
     get,
     post,
